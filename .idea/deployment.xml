@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" autoUpload="Always" serverName="tianhao@192.168.31.91:22 password" remoteFilesAllowedToDisappearOnAutoupload="false">
+    <serverData>
+      <paths name="root@connect.cqa1.seetacloud.com:21150 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/autodl-tmp/CoMatch-main/LLP" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@connect.neimeng.seetacloud.com:17480 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/autodl-tmp" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@connect.neimeng.seetacloud.com:37609 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/autodl-tmp/CoMatch" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@connect.neimeng.seetacloud.com:53498 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/autodl-tmp/123" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@connect.westa.seetacloud.com:13815 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/autodl-tmp/CoMatch" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@connect.westa.seetacloud.com:17519 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/autodl-tmp" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@connect.westa.seetacloud.com:40032 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/autodl-tmp/comatch" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@connect.westb.seetacloud.com:12334 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/autodl-tmp/CoMatch" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@connect.westb.seetacloud.com:17767 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/autodl-tmp/CoMatch" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@connect.westb.seetacloud.com:22271 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/autodl-tmp/CoMatch" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@connect.westb.seetacloud.com:28516 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/autodl-tmp/CoMatch" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@connect.westb.seetacloud.com:29723 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/autodl-tmp/CoMatch" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@connect.westb.seetacloud.com:29723 password (1)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/autodl-tmp/CoMatch" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@connect.westb.seetacloud.com:29973 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/autodl-tmp/Cm" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@connect.westb.seetacloud.com:30181 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/autodl-tmp" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@connect.westb.seetacloud.com:33531 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/autodl-tmp/C" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@connect.westb.seetacloud.com:34277 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/autodl-tmp/CoMatch" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@connect.westb.seetacloud.com:36805 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/autodl-tmp/CoMatch" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@connect.westb.seetacloud.com:39794 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/autodl-tmp/CoMatch" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@connect.westb.seetacloud.com:41282 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/autodl-tmp/CoMatch" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@connect.westb.seetacloud.com:43208 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/autodl-tmp/.autodl/CoMatch" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@connect.westb.seetacloud.com:49026 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/autodl-tmp/CoMatch" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@connect.westb.seetacloud.com:55255 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/autodl-tmp/CoMatch" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@connect.westb.seetacloud.com:55920 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/autodl-tmp/CoMatch" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@connect.westc.gpuhub.com:28909 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/autodl-tmp/comatch" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@region-3.seetacloud.com:23628 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/autodl-tmp/nm" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@region-31.seetacloud.com:24030 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/autodl-tmp" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@region-31.seetacloud.com:37161 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/autodl-tmp/CoMatch" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@region-42.seetacloud.com:18719 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/autodl-tmp/CoMatch" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@region-45.autodl.pro:20132 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/autodl-tmp/Co" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@region-45.autodl.pro:25259 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/autodl-tmp/CoMatch" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@region-8.autodl.pro:29086 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/autodl-tmp/CoMatch" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@region-8.autodl.pro:35615 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/autodl-tmp/CoMatch" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@region-8.autodl.pro:50742 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/autodl-tmp" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@region-9.autodl.pro:22557 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/autodl-tmp/CoMatch" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="tianhao@192.168.0.103:22 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/tianhao/Desktop/Tianhao" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="tianhao@192.168.31.91:22 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/tianhao/Desktop/Tianhao" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="tianhao@192.168.66.115:22 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/tianhao/Desktop/Tianhao" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="tianhao@192.168.66.115:22 password (1)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/tianhao/Desktop/CoMatch" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="tianhao@192.168.66.115:22 password (2)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/tianhao/Desktop/LLP" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="tianhao@192.168.66.115:22 password (3)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/tianhao/Desktop/LLP" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="tianhao@192.168.66.115:22 password (4)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/tianhao/Desktop/LLP" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="tianhao@192.168.66.115:22 password (5)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/tmp/pycharm_project_211" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="tianhao@192.168.66.115:22 password (6)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/tianhao/Desktop/LLP-CoMatch" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="tianhao@192.168.66.116:22 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/tianhao/Desktop/Tianhao" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+    </serverData>
+    <option name="myAutoUpload" value="ALWAYS" />
+  </component>
+</project>
