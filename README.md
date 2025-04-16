@@ -45,12 +45,12 @@ This repository provides the implementation for a model training framework with 
 
 Run the script with default configurations:
 ```bash
-python train.py
+python LLP-AHIL.py
 ```
 
 Customize parameters as needed:
 ```bash
-python train.py --root './my_data' --dataset 'CIFAR-100' --n-classes 100 --batchsize 128 --lr 0.01
+python LLP-AHIL.py --root './my_data' --dataset 'CIFAR-100' --n-classes 100 --batchsize 128 --lr 0.01
 ```
 
 For more details, refer to the parameter descriptions above.
