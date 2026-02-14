@@ -272,8 +272,8 @@ def train_one_epoch(epoch,
         entropy = -torch.sum(probs * torch.log2(probs), dim=1)
         mask = (entropy < 0.6).float()
 
-        #loss_u = (criteria_u(logits_u_s0, lbs_u_guess)*lambda_total ).mean()
-        loss_u = (criteria_u(logits_u_s0, lbs_u_guess)*mask).mean()
+        loss_u = (criteria_u(logits_u_s0, lbs_u_guess)*lambda_total ).mean()
+        #loss_u = (criteria_u(logits_u_s0, lbs_u_guess)*mask).mean()
 
         loss =  loss_prop + args.lam_u * loss_u
         optim.zero_grad()
