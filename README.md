@@ -24,12 +24,8 @@ This repository provides the implementation for a model training framework with 
 
 ### Loss Coefficients
 - **`--lam-u`**: Coefficient for unlabeled loss (default: `0.5`).
-- **`--lam-c`**: Coefficient for contrastive loss (default: `1`).
 - **`--lam-p`**: Coefficient for proportion loss (default: `2`).
 
-### Exponential Moving Average (EMA)
-- **`--eval-ema`**: Specifies whether to use the EMA model for evaluation (default: `True`).
-- **`--ema-m`**: EMA momentum factor (default: `0.999`).
 
 ### Beta Parameters
 - **`--beta-b`**: Beta parameter `b` (default: `5.0`).
