@@ -43,7 +43,7 @@ def load_mini_imagenet_data(dspth, split='train'):
     elif split == 'test':
         pkl_file = osp.join(dspth, 'mini-imagenet-cache-test.pkl')
     else:
-        raise ValueError("无效的 split 参数，应为 'train', 'val' 或 'test'")
+        raise ValueError("Invalid split; expected 'train', 'val', or 'test'")
 
     with open(pkl_file, 'rb') as f:
         data_dict = pickle.load(f)
@@ -140,7 +140,7 @@ def load_test_data(test_data, test_labels, class_mapping):
         if key in class_mapping:
             class_label = class_mapping[key]
         else:
-            raise ValueError(f"测试数据集中找不到训练数据中的类: {key}")
+            raise ValueError(f"Test-set class missing from the training class mapping: {key}")
 
         for index in indices:
             final_test_labels[index] = class_label
