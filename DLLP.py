@@ -28,20 +28,10 @@ import math
 
 
 def cross_entropy_loss_torch(softmax_matrix, onehot_labels):
-    """
-    计算交叉熵损失 (PyTorch版本)
-
-    :param softmax_matrix: 预测的softmax矩阵 (batch_size, num_classes)
-    :param onehot_labels: 真实的onehot标签矩阵 (batch_size, num_classes)
-    :return: 平均交叉熵损失
-    """
-    # 使用 log_softmax 确保数值稳定性
     log_softmax = torch.log(softmax_matrix + 1e-12)
 
-    # 计算交叉熵
     cross_entropy = -torch.sum(onehot_labels * log_softmax, dim=1)
 
-    # 返回平均损失
     mean_loss = torch.mean(cross_entropy)
     return mean_loss
 
@@ -119,7 +109,7 @@ def ema_model_update(model, ema_model, ema_m):
 
 def llp_loss(labels_proportion, y):
     x = torch.tensor(labels_proportion, dtype=torch.float64).cuda()
-    x = x.squeeze(0)  # 或者 x.squeeze()
+    x = x.squeeze(0)
 
     # Ensure y is also double
 
@@ -150,233 +140,130 @@ def custom_loss(probs, lambda_val=1.0):
 
 
 def compute_CC_loss(softmax_p, proportions, epsilon=1e-12):
-    """
-    计算损失函数：
-    R_cc(f) = -sum_{c=1}^C log( sum_{S_c subset size k_c} prod_{j in S_c} f_c(x_j) * prod_{j not in S_c} (1 - f_c(x_j)) )
-
-    参数：
-    - labels_p: Tensor of shape [s, C], f_c(x_j) 的 softmax 输出
-    - proportions: Tensor of shape [C], 每个类别的比例
-    - epsilon: float, 用于数值稳定性的小常数
-
-    返回：
-    - loss: scalar tensor, 计算得到的损失值
-    """
     s, C = softmax_p.shape  # s: bag size, C: number of classes
     device = softmax_p.device
-    dtype = torch.double  # 使用double精度
+    dtype = torch.double
 
-    # 计算 k_c = proportions[c] * s，并确保 k_c 是整数
     k_c = (proportions * s).long()  # [C]
 
-    # 初始化 E: [C, k_max + 1]
     k_max = k_c.max().item()
     E = torch.zeros(C, k_max + 1, device=device, dtype=dtype)
     E[:, 0] = 1.0  # E[c, 0] = 1
 
-    # 动态规划计算 E[c, l] = sum_{S subset size l} prod_{j in S} f_c(x_j) * prod_{j not in S} (1 - f_c(x_j))
     for j in range(s):
-        a = softmax_p[j].to(dtype)  # 确保softmax_p[j]为double精度
-        # 计算新的 E，而不是原地修改
+        a = softmax_p[j].to(dtype)
         E_new = E.clone()
-        # 仅更新 1 到 k_max 的部分
         E_new[:, 1:k_max+1] = E[:, 1:k_max+1] * (1 - a.unsqueeze(1)) + E[:, 0:k_max] * a.unsqueeze(1)
         E = E_new
 
-    # 提取每个类别 c 的 E[c, k_c[c]]
     class_indices = torch.arange(C, device=device)
     E_kc = E[class_indices, k_c]  # [C]
 
-    # 计算 log(E_kc + epsilon) 以避免 log(0)
     log_E_kc = torch.log(E_kc + epsilon)  # [C]
 
-    # 计算最终的损失
     loss = -torch.sum(log_E_kc)  # scalar
 
     return loss
 def compute_CC_loss_logDP(labels_p, proportions, epsilon=1e-12):
-    """
-    利用 log 空间的动态规划来计算:
-        R_cc(f) = -sum_{c=1}^C log( sum_{S_c subset size k_c} prod_{j in S_c} f_c(x_j) * prod_{j not in S_c} (1 - f_c(x_j)) )
-
-    参数：
-    - labels_p: Tensor of shape [s, C], f_c(x_j) 的输出 (概率)
-    - proportions: Tensor of shape [C], 每个类别的比例
-    - epsilon: float, 用于数值稳定性的小常数
-
-    返回：
-    - loss: scalar tensor, 计算得到的损失值
-    """
     s, C = labels_p.shape  # s: bag size, C: number of classes
     device = labels_p.device
     dtype = labels_p.dtype
 
-    # 计算 k_c = proportions[c] * s，并确保 k_c 是整数
     k_c = (proportions * s).long()  # [C]
 
-    # 动态规划需要的最大子集大小
     k_max = k_c.max().item()
 
-    # 初始化 logE: [C, k_max + 1]
-    # 用一个极小的值(如 -1e30)来模拟负无穷, 以便后续做 log-sum-exp
     logE = torch.full((C, k_max + 1), -1e30, device=device, dtype=dtype)
     logE[:, 0] = 0.0  # log(1) = 0
 
-    # 动态规划计算 logE[c, l]
-    # 原公式: E_new[c, l] = E[c, l] * (1 - a_c) + E[c, l-1] * a_c
-    # 转成 log 空间:
     #   logE_new[c, l] = log_sum_exp( logE[c, l] + log(1 - a_c), logE[c, l-1] + log(a_c) )
     for j in range(s):
         p_j = labels_p[j]  # [C]
         log_p_j   = torch.log(p_j.clamp_min(epsilon))          # log( f_c(x_j) )
         log_1mp_j = torch.log((1 - p_j).clamp_min(epsilon))    # log(1 - f_c(x_j))
 
-        # 准备更新 logE
         logE_new = torch.full((C, k_max + 1), -1e30, device=device, dtype=dtype)
 
-        # l = 0 时，只能从原来的 l=0 转移过来，且乘以 (1-p_j)
         # logE_new[:, 0] = logE[:, 0] + log(1 - p_j)
         logE_new[:, 0] = logE[:, 0] + log_1mp_j
 
-        # l = 1..k_max 时, 需要做 log-sum-exp
         for l in range(1, k_max + 1):
-            # 两部分来源：
-            #   1) 维持原子集大小 l: 从 logE[:, l] + log(1 - p_j)
-            #   2) 增加一个元素:   从 logE[:, l-1] + log(p_j)
             v1 = logE[:, l]   + log_1mp_j
             v2 = logE[:, l-1] + log_p_j
-            # 做 log-sum-exp
             max_v12 = torch.maximum(v1, v2)
-            # 避免 exp() 的值过大或者过小，做相对位置的 log-sum-exp
             log_sum = max_v12 + torch.log(torch.exp(v1 - max_v12) + torch.exp(v2 - max_v12) + epsilon)
             logE_new[:, l] = log_sum
 
-        # 更新
         logE = logE_new
 
-    # 提取对应 k_c 的 logE 值，即 log E[c, k_c]
     class_indices = torch.arange(C, device=device)
     logE_kc = logE[class_indices, k_c]  # [C]
 
-    # 计算损失: -sum_c logE[c, k_c]
     loss = -torch.sum(logE_kc)  # scalar
 
     return loss
 
 def compute_CC_loss_simplified_gpu(labels_p, proportions, epsilon=1e-12):
-    """
-    计算简化版的 Class-Conditional 损失函数的 GPU 并行版本:
-    R_cc(f) = -sum_{c=1}^C log( sum_{S_c subset size k_c} prod_{j in S_c} f_c(x_j) )
-
-    参数：
-    - labels_p: Tensor of shape [s, C], f_c(x_j) 的 softmax 输出
-    - proportions: Tensor of shape [C], 每个类别的比例
-    - epsilon: float, 用于数值稳定性的小常数
-
-    返回：
-    - loss: scalar tensor, 计算得到的损失值
-    """
     s, C = labels_p.shape  # s: bag size, C: number of classes
-    device = labels_p.device  # 获取设备信息 (GPU 或 CPU)
+    device = labels_p.device
     dtype = labels_p.dtype
 
-    # 计算每个类别需要选择的样本数 k_c
     k_c = (proportions * s).long()  # [C]
 
-    # 计算每个类别的概率乘积部分
-    f_c = labels_p  # [s, C]，表示每个样本属于各类别的概率
-    # f_c 是每个类别的 softmax 输出，我们可以直接对其进行加和和对数运算
+    f_c = labels_p
 
-    # 计算每个类别的概率乘积部分：sum_{S_c subset size k_c} prod_{j in S_c} f_c(x_j)
-    # 这里我们不再使用循环，而是用矩阵操作来实现
 
-    # 计算每个类别的概率总和：对每个类别的 softmax 输出取和
-    # f_c 是大小 [s, C]，每一列是某个类别的概率
-    product_sum = f_c.sum(dim=0)  # [C], 计算每个类别的所有样本概率之和
+    product_sum = f_c.sum(dim=0)
 
-    # 计算对数并加上 epsilon 以避免对数 0
     log_product_sum = torch.log(product_sum + epsilon)  # [C]
 
-    # 计算最终损失：对每个类别的对数概率取负并求和
-    loss = -log_product_sum.sum()  # scalar, 将所有类别的损失求和
+    loss = -log_product_sum.sum()
 
     return loss
 
 
 def multi_instance_loss_dp_gpu(labels_p: torch.Tensor,
                                proportions: torch.Tensor) -> torch.Tensor:
-    """
-    使用动态规划在 GPU 上并行（矢量化）计算多实例损失:
-
-        Loss = sum_{c=1 to C} log( sum_{|S_c|=k_c} product_{j in S_c} labels_p[j,c] )
-
-    参数:
-    --------
-    labels_p : shape (s, C), float32
-        - 每行是一个样本对 C 个类别的 softmax 输出
-    proportions : shape (C,), float32
-        - 每个类别所占的比例, 用来计算 k_c
-
-    返回:
-    --------
-    total_loss : 一个标量 (float32)
-    """
     device = labels_p.device
     s, C = labels_p.shape
 
-    # 计算每个类别对应的 k_c（可用 round / floor / ceil，视你的场景调整）
     k_list = torch.round(proportions * s).long()  # shape (C,)
 
-    total_loss = torch.zeros([], device=device, dtype=torch.float32)  # 标量
+    total_loss = torch.zeros([], device=device, dtype=torch.float32)
 
-    # 针对每个类别分别用 DP 计算其 sum_{|S|=k_c} product_{j in S} (labels_p[j,c])
     for c in range(C):
         k_c = k_list[c].item()
         if k_c <= 0:
-            # 若 k_c = 0，通常表示不需要选任何样本，可视需求将其处理为1或跳过
-            # 这里直接跳过该项不累加
             continue
 
-        # 取第 c 个类别在所有样本处的概率值, shape = (s,)
         p = labels_p[:, c]
 
-        # ------ 动态规划 DP 表: dp[t, r] ------
-        # dp[t, r] = 从前 t 个样本中选 r 个的所有乘积之和
-        # 大小: (s+1) x (k_c+1)
-        # 注意: 这里用 float32，如果担心数值精度，可改为 float64
         dp = torch.zeros((s + 1, k_c + 1), device=device, dtype=torch.float32)
-        dp[0, 0] = 1.0  # 从前0个样本中选0个, 乘积之和=1
+        dp[0, 0] = 1.0
 
-        # 逐个样本做更新 (无法完全消除这个 for，但对 r 的更新用并行向量化)
         for t in range(s):
             # dp[t+1, 0] = dp[t, 0]
             dp[t + 1, 0] = dp[t, 0]
-            # 对 r in [1..k_c]:
             # dp[t+1, r] = dp[t, r] + p[t]*dp[t, r-1]
-            # 我们用切片矢量化实现:
             # dp[t+1, 1:] = dp[t, 1:] + p[t] * dp[t, :-1]
             dp[t + 1, 1:] = dp[t, 1:] + p[t] * dp[t, :-1]
 
-        # dp[s, k_c] 即为 sum_{|S|=k_c} product_{j in S} p[j]
-        sum_of_products = dp[s, k_c]  # 标量
+        sum_of_products = dp[s, k_c]
 
-        # 数值稳定考虑：最好在对数空间中做DP。此处简单演示，最后再取 log 即可。
         c_loss = torch.log(sum_of_products)
 
         total_loss += c_loss
 
-    # 若做损失优化，一般会用 -total_loss 作为目标；这里直接返回总和
     return total_loss
 
 
-# ============================ 测试示例 ============================
 def thre_ema(thre, sum_values, ema):
     return thre * ema + (1 - ema) * sum_values
 
 
 def weight_decay_with_mask(mask, initial_weight, max_mask_count):
-    mask_count = mask.sum().item()  # 计算当前 mask 中的元素数量
-    weight_decay = max(0, 1 - mask_count / max_mask_count)  # 线性衰减
+    mask_count = mask.sum().item()
+    weight_decay = max(0, 1 - mask_count / max_mask_count)
     return initial_weight * weight_decay
 
 
@@ -478,30 +365,24 @@ def train_one_epoch(epoch,
 
         chunk_size = len(logits_u_w) // length
         batch_size = length
-        # 分成 length 节
         chunks = [logits_u_w[i * chunk_size:(i + 1) * chunk_size] for i in range(length)]
 
-        # 打印分成的各节数据
         proportion = torch.empty((0, n_classes), dtype=torch.float64).cuda()
         batch_size = length
 
-        # 循环生成 proportion 的每一行
         for i in range(length):
-            pr = label_proportions[i][0]  # 获取每一行对应的列表
-            pr = torch.stack(pr).cuda()  # 将列表转换为张量，并移动到 GPU 上
-            proportion = torch.cat((proportion, pr.unsqueeze(0)))  # 按行拼接
+            pr = label_proportions[i][0]
+            pr = torch.stack(pr).cuda()
+            proportion = torch.cat((proportion, pr.unsqueeze(0)))
         proportion = proportion.view(length, n_classes, 1)
         proportion = proportion.squeeze(-1)
         proportion = proportion.double()
-        # 创建一个空的 PyTorch 向量用于保存 loss_p
         loss_prop = torch.Tensor([]).cuda()
         loss_prop = loss_prop.double()
         kl_divergence = torch.Tensor([]).cuda()
         kl_divergence = kl_divergence.double()
         kl_divergence_hard = torch.Tensor([]).cuda()
         kl_divergence_hard = kl_divergence_hard.double()
-        # 假设您有一个名为 chunks 的列表，其中包含多个 chunk
-        # 在循环中计算 loss_p 并添加到 all_loss_p 中
         for i, chunk in enumerate(chunks):
             labels_p = torch.softmax(chunk, dim=1)
             scores, lbs_u_guess = torch.max(labels_p, dim=1)
@@ -527,14 +408,11 @@ def train_one_epoch(epoch,
             one_hot_matrix += 1e-9
             log_one_hot_matrix = torch.log(one_hot_matrix)
 
-            # 计算软标签的KL散度
             kl_soft = F.kl_div(log_labels_p, label_prop, reduction='batchmean')
 
-            # 计算硬标签的KL散度
             kl_hard = F.kl_div(log_one_hot_matrix, label_prop, reduction='batchmean')
             kl_divergence = torch.cat((kl_divergence, kl_soft.view(1)))
             kl_divergence_hard = torch.cat((kl_divergence_hard, kl_hard.view(1)))
-            # all_loss_p 包含了每个 loss_p
         kl_divergence = kl_divergence.mean()
         kl_divergence_hard = kl_divergence_hard.mean()
         loss_prop = loss_prop.mean()
@@ -557,8 +435,8 @@ def train_one_epoch(epoch,
             mask = max_probs.ge(0.2+0.75 * (classwise_acc[max_idx] / (2. - classwise_acc[max_idx]))).float()  # convex
             thre=0.2+0.75 * (classwise_acc[max_idx] / (2. - classwise_acc[max_idx]))
 
-            thre_col = thre.view(-1, 1)  # 将 thre 变为列向量
-            thre_row = thre.view(1, -1)  # 将 thre 变为行向量
+            thre_col = thre.view(-1, 1)
+            thre_row = thre.view(1, -1)
 
             thre = torch.mm(thre_col, thre_row)
             delta = thre + (1 - thre) / (n_classes-1) * (1 - thre)
@@ -583,9 +461,6 @@ def train_one_epoch(epoch,
             probs = probs / probs.sum(dim=1, keepdim=True)
             """
 
-            """
-            probs是分类器对弱增强输出对 softmax结果
-            """
 
             """
             probs_orig = probs.clone()
@@ -651,7 +526,7 @@ def evaluate(model, ema_model, dataloader):
     ema_top1_meter = AverageMeter()
     top5_meter = AverageMeter()
     ema_top5_meter = AverageMeter()
-    loss_meter = AverageMeter()  # 假设你有一个 AverageMeter 类来计算均值
+    loss_meter = AverageMeter()
 
     with torch.no_grad():
         for ims, lbs in dataloader:
@@ -663,7 +538,6 @@ def evaluate(model, ema_model, dataloader):
             logits = model(ims)
             loss = torch.nn.CrossEntropyLoss()(logits, lbs)
 
-            # 更新交叉熵损失的累加器
             loss_meter.update(loss.item())
             scores = torch.softmax(logits, dim=1)
             top1, top5 = accuracy(scores, lbs, (1, 5))

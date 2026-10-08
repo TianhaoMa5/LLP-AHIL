@@ -13,9 +13,9 @@ class PadandRandomCrop(object):
         self.cropsize = cropsize
 
     def __call__(self, im):
-        if len(im.shape) == 3:  # 彩色图像
+        if len(im.shape) == 3:
             borders = [(self.border, self.border), (self.border, self.border), (0, 0)]
-        elif len(im.shape) == 2:  # 灰度图像
+        elif len(im.shape) == 2:
             borders = [(self.border, self.border), (self.border, self.border)]
 
         convas = np.pad(im, borders, mode='reflect')
@@ -23,7 +23,7 @@ class PadandRandomCrop(object):
         h, w = self.cropsize
         dh, dw = max(0, H-h), max(0, W-w)
         sh, sw = np.random.randint(0, dh), np.random.randint(0, dw)
-        out = convas[sh:sh+h, sw:sw+w, ...]  # 适用于彩色和灰度图像
+        out = convas[sh:sh+h, sw:sw+w, ...]
         return out
 
 
@@ -35,10 +35,8 @@ class RandomHorizontalFlip(object):
     def __call__(self, im):
         if np.random.rand() < self.p:
             if im.ndim == 3:
-                # 三维数组（彩色图像），水平翻转
                 im = im[:, ::-1, :]
             elif im.ndim == 2:
-                # 二维数组（灰度图像），水平翻转
                 im = im[:, ::-1]
         return im
 
@@ -58,24 +56,19 @@ class Normalize(object):
     '''
 
     def __init__(self, mean, std):
-        # 对于灰度图像，mean和std是单值
         self.mean = np.array(mean, dtype=np.float32).reshape(1, 1, 1)
         self.std = np.array(std, dtype=np.float32).reshape(1, 1, 1)
 
     def __call__(self, im):
         if im.ndim == 4:
-            # 批量处理的图像，保持不变
             pass
         elif im.ndim == 3:
-            # 单张彩色图像，检查是否真的有3个通道
             assert im.shape[2] == 3, "Input image has more than one channel but not 3 channels."
         elif im.ndim == 2:
-            # 单张灰度图像，添加一个通道维度
             im = im[None, ...]
         else:
             raise ValueError(f"Unsupported image dimension: {im.ndim}")
 
-        # 归一化处理
         im = im.astype(np.float32) / 255.0
         im -= self.mean
         im /= self.std
@@ -92,7 +85,6 @@ class ToTensor(object):
         elif len(im.shape) == 3:
             return torch.from_numpy(im.transpose(2, 0, 1))
         elif len(im.shape) == 2:
-            # 处理2维图像（例如：灰度图像，如MNIST）
             return torch.from_numpy(im[None, :, :])
 
 class Compose(object):

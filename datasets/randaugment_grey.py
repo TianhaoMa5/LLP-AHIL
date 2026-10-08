@@ -160,7 +160,6 @@ def sharpness_func(img, factor):
         out = img.astype(np.float32)
         degenerate = degenerate.astype(np.float32)
 
-        # 如果图像是二维灰度图，不要使用颜色通道索引
         if img.ndim == 2:
             out[1:-1, 1:-1] = degenerate[1:-1, 1:-1] + factor * (out[1:-1, 1:-1] - degenerate[1:-1, 1:-1])
         elif img.ndim == 3:
@@ -213,20 +212,14 @@ def shear_y_func(img, factor, fill=(0, 0, 0)):
 
 
 def cutout_func(img, pad_size, replace=(0, 0, 0)):
-    # 将替换值转换为相应的数据类型
     replace = np.array(replace, dtype=img.dtype)
-    # 获取图像的高度和宽度
     H, W = img.shape[:2]
-    # 生成随机中心点
     rh, rw = np.random.random(2)
     pad_size = pad_size // 2
     ch, cw = int(rh * H), int(rw * W)
-    # 计算裁剪区域
     x1, x2 = max(ch - pad_size, 0), min(ch + pad_size, H)
     y1, y2 = max(cw - pad_size, 0), min(cw + pad_size, W)
-    # 复制图像以避免修改原始图像
     out = img.copy()
-    # 根据图像的维度应用替换
     if img.ndim == 3:
         out[x1:x2, y1:y2, :] = replace
     elif img.ndim == 2:

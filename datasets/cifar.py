@@ -22,7 +22,7 @@ import pickle
 import os
 from PIL import Image
 
-label_map = {}  # 用于映射原始标签到连续整数的字典
+label_map = {}
 class_mapping={}
 
 
@@ -30,25 +30,12 @@ def extract_labels_from_class_dict(class_dict):
     for class_idx, image_indices in enumerate(class_dict.values()):
         for image_index in image_indices:
             label_map[image_index] = class_idx
-    # 为了保证顺序，我们根据图像索引排序
     sorted_label_map = dict(sorted(label_map.items()))
-    # 现在我们可以得到一个与图像一一对应的标签列表
     labels = list(sorted_label_map.values())
     return labels
 
 
 def load_mini_imagenet_data(dspth, split='train'):
-    """
-    加载 Mini-ImageNet 数据集。
-
-    参数:
-    - dspth: 数据集的路径
-    - split: 'train', 'val', 'test' 对应不同的数据集部分
-
-    返回:
-    - data: 图像数据
-    - labels: 标签数据
-    """
     if split == 'train':
         pkl_file = osp.join(dspth, 'mini-imagenet-cache-train.pkl')
     elif split == 'val':
@@ -58,42 +45,26 @@ def load_mini_imagenet_data(dspth, split='train'):
     else:
         raise ValueError("无效的 split 参数，应为 'train', 'val' 或 'test'")
 
-    # 读取 .pkl 文件
     with open(pkl_file, 'rb') as f:
         data_dict = pickle.load(f)
 
-    # 从数据字典中获取图像和标签
-    data = data_dict['image_data']  # 图像数据
-    labels = data_dict['class_dict']  # 类别标签
+    data = data_dict['image_data']
+    labels = data_dict['class_dict']
 
     return data, labels
 
 
 def merge_train_val_test(dspth):
-    """
-    加载并合并 Mini-ImageNet 数据集的训练集、验证集和测试集，并确保相同类别名称的标签保持一致。
-
-    参数:
-    - dspth: 数据集的路径
-
-    返回:
-    - merged_data: 合并后的图像数据
-    - merged_labels: 合并后的标签数据
-    """
-    # 加载训练集、验证集和测试集
     train_data, train_labels = load_mini_imagenet_data(dspth, split='train')
     val_data, val_labels = load_mini_imagenet_data(dspth, split='val')
     test_data, test_labels = load_mini_imagenet_data(dspth, split='test')
 
-    # 合并数据
     merged_data = np.concatenate([train_data, val_data, test_data], axis=0)
 
-    # 创建类别映射，确保相同 key 的类别标签相同
-    class_mapping = {}  # 用于存储每个类别的唯一标签
-    class_label = 0  # 初始化标签计数器
-    merged_labels = [None] * len(merged_data)  # 初始化标签列表，None表示还未分配标签
+    class_mapping = {}
+    class_label = 0
+    merged_labels = [None] * len(merged_data)
     m_labels={**test_labels, **train_labels, **val_labels}
-    # 合并 train, val, test 的 labels 并设置相同 key 的标签相同
     new_labels = {key: idx for idx, key in enumerate(m_labels.keys())}
     sample_labels = []
 
@@ -111,7 +82,6 @@ def load_tiny_imagenet_val(root, image_size=(64, 64)):
     labels = []
     n_class = 0
 
-    # 读取标签文件
     with open(os.path.join(root, 'tiny-imagenet-200/val', 'val_annotations.txt'), 'r') as f:
         for line in f:
             parts = line.split('\t')
@@ -123,17 +93,14 @@ def load_tiny_imagenet_val(root, image_size=(64, 64)):
                 label_map[class_name] = n_class
                 n_class += 1
 
-            # 读取图像
             image_path = os.path.join(root, 'tiny-imagenet-200/val', 'images', image_name)
             image = Image.open(image_path)
             image = image.resize(image_size)
             image = np.array(image)
 
-            # 确保图像具有3个通道
             if len(image.shape) != 3 or image.shape[2] != 3:
                 continue
 
-            # 添加到数据列表和标签列表
             datalist.append(image)
             labels.append(label_map[class_name])
 
@@ -166,24 +133,19 @@ def load_tiny_imagenet_data(root, image_size=(64, 64)):
 
     return np.array(datalist), labels, n_class
 def load_test_data(test_data, test_labels, class_mapping):
-    # 创建一个新的标签列表，用于存储测试数据的标签
-    final_test_labels = [None] * sum(len(v) for v in test_labels.values())  # 初始化labels列表
-    test_data_list = []  # 用于存储测试数据
+    final_test_labels = [None] * sum(len(v) for v in test_labels.values())
+    test_data_list = []
 
-    # 使用和训练集相同的 class_label 映射
     for key, indices in test_labels.items():
-        # 获取训练集中相同类的标签索引
         if key in class_mapping:
-            class_label = class_mapping[key]  # 获取对应的类别标签
+            class_label = class_mapping[key]
         else:
             raise ValueError(f"测试数据集中找不到训练数据中的类: {key}")
 
-        # 将测试数据中的索引与类别标签进行映射
         for index in indices:
-            final_test_labels[index] = class_label  # 为每个索引赋值类别标签
-            test_data_list.append(test_data[index])  # 加载测试数据
+            final_test_labels[index] = class_label
+            test_data_list.append(test_data[index])
 
-    # 将标签转换为 numpy 数组
     final_test_labels = np.array(final_test_labels)
     return np.array(test_data_list), final_test_labels
 
@@ -254,26 +216,25 @@ def load_data_train(num_classes, dataset='CIFAR10', dspth='./data', bagsize=16):
         data, labels = [], []
         datalist = [
             osp.join(dspth, 'KMNIST', 'raw', 'train-images-idx3-ubyte'),
-            osp.join(dspth, 'KMNIST', 'raw', 't10k-images-idx3-ubyte')  # 包含训练和测试集
+            osp.join(dspth, 'KMNIST', 'raw', 't10k-images-idx3-ubyte')
         ]
         labelslist = [
             osp.join(dspth, 'KMNIST', 'raw', 'train-labels-idx1-ubyte'),
-            osp.join(dspth, 'KMNIST', 'raw', 't10k-labels-idx1-ubyte')  # 包含训练和测试集
+            osp.join(dspth, 'KMNIST', 'raw', 't10k-labels-idx1-ubyte')
         ]
         n_class = 10
     elif dataset == 'EMNISTBalanced':
         data, labels = [], []
-        # 更新文件路径以指向EMNIST Balanced数据集的文件
         datalist = [osp.join(dspth, 'EMNIST','raw', 'emnist-balanced-train-images-idx3-ubyte')]
         labelslist = [osp.join(dspth, 'EMNIST','raw', 'emnist-balanced-train-labels-idx1-ubyte')]
         n_class = 47
     elif dataset == 'AGNEWS':
         data, labels = [], []
         datalist = [
-            osp.join(dspth, 'AGNEWS', 'train.csv'),  # 训练集
-            osp.join(dspth, 'AGNEWS', 'test.csv')  # 测试集
+            osp.join(dspth, 'AGNEWS', 'train.csv'),
+            osp.join(dspth, 'AGNEWS', 'test.csv')
         ]
-        labelslist = None  # AG News 数据集的标签已经嵌入文件中
+        labelslist = None
         n_class = 4
     elif dataset == 'TinyImageNet':
         train_data, train_labels, n_class = load_tiny_imagenet_data(dspth)
@@ -344,8 +305,8 @@ def load_data_train(num_classes, dataset='CIFAR10', dspth='./data', bagsize=16):
     elif dataset == 'EMNISTBalanced':
         for data_path, label_path in zip(datalist, labelslist):
             with open(data_path, 'rb') as fr_data, open(label_path, 'rb') as fr_label:
-                fr_data.read(16)  # 跳过头部信息
-                fr_label.read(8)  # 跳过头部信息
+                fr_data.read(16)
+                fr_label.read(8)
                 data.append(np.frombuffer(fr_data.read(), dtype=np.uint8).reshape(-1, 784))
                 labels.append(np.frombuffer(fr_label.read(), dtype=np.uint8))
 
@@ -361,12 +322,9 @@ def load_data_train(num_classes, dataset='CIFAR10', dspth='./data', bagsize=16):
         for data_path in datalist:
             with open(data_path, 'r', encoding='utf-8') as fr:
                 df = pd.read_csv(fr, header=None, names=["Class", "Title", "Description"])
-                # 合并标题和描述
                 data.append((df["Title"] + " " + df["Description"]).tolist())
-                # 标签调整为从 0 开始
                 labels.append((df["Class"] - 1).tolist())
 
-        # 将列表数据拼接为单个数组
         data = np.concatenate(data, axis=0)
         labels = np.concatenate(labels, axis=0)
 
@@ -376,14 +334,12 @@ def load_data_train(num_classes, dataset='CIFAR10', dspth='./data', bagsize=16):
     random_indices = np.arange(data_length)
     np.random.shuffle(random_indices)
 
-    # 使用随机索引对 data 和 labels 进行打乱
     data = data[random_indices]
     labels = labels[random_indices]
     data_u, label_prob = [], []
     labels_real = []
     labels_idx = []
 
-    # 使用np.arange生成初始索引序列，数量等于data的长度
     indices = np.arange(data_length)
 
     np.random.shuffle(indices)
@@ -428,7 +384,6 @@ def load_data_val(dataset, dspth='./data',n_classes=10):
     elif dataset == "TinyImageNet":
         data, labels, n_class = load_tiny_imagenet_val(dspth)
     elif dataset == 'miniImageNet':
-        # 加载miniImageNet数据集的训练、验证和测试集
         train_data, train_labels = merge_train_val_test(dspth)
         test_data_list = []
         test_labels_list = []
@@ -445,7 +400,6 @@ def load_data_val(dataset, dspth='./data',n_classes=10):
         # Concatenate the subsets into final arrays
         data = np.concatenate(test_data_list, axis=0)
         labels = np.concatenate(test_labels_list, axis=0)
-        # 使用和训练集相同的 class_label 映射
 
 
     if dataset == 'CIFAR10' or dataset == 'CIFAR100':
@@ -519,21 +473,20 @@ def load_data_val(dataset, dspth='./data',n_classes=10):
 
     elif dataset == 'EMNISTBalanced':
         data, labels = [], []
-        # 更新为EMNIST Balanced数据集的文件路径
         datalist = [osp.join(dspth, 'EMNIST', 'raw', 'emnist-balanced-test-images-idx3-ubyte')]
         labelslist = [osp.join(dspth, 'EMNIST', 'raw', 'emnist-balanced-test-labels-idx1-ubyte')]
-        n_class = 47  # EMNIST Balanced有47个类别
+        n_class = 47
 
         for data_path, label_path in zip(datalist, labelslist):
             with open(data_path, 'rb') as fr_data, open(label_path, 'rb') as fr_label:
-                fr_data.read(16)  # 跳过头部信息
-                fr_label.read(8)  # 跳过头部信息
+                fr_data.read(16)
+                fr_label.read(8)
                 data.append(np.frombuffer(fr_data.read(), dtype=np.uint8).reshape(-1, 28 * 28))
                 labels.append(np.frombuffer(fr_label.read(), dtype=np.uint8))
 
         data = np.concatenate(data, axis=0)
         labels = np.concatenate(labels, axis=0)
-        data = [el.reshape(28, 28) for el in data]  # 将每个样本重塑为28x28
+        data = [el.reshape(28, 28) for el in data]
 
     return data, labels
 
@@ -552,23 +505,18 @@ def load_svhn_val(dspth='./data/svhn'):
 def load_svhn_data(dspth):
     svhn_path = osp.join(dspth, 'svhn')
 
-    # 加载训练数据
     with open(osp.join(svhn_path, 'train_32x32.mat'), 'rb') as fr:
         svhn_train = sio.loadmat(fr)
         train_data = svhn_train['X']
         train_labels = svhn_train['y']
 
 
-    # 转换数据维度
     train_data = np.transpose(train_data, (3, 0, 1, 2))
 
-    # 调整标签（从1-10改为0-9）
     train_labels = (train_labels ) % 10
 
-    # 压缩标签数组
     train_labels = train_labels.squeeze()
 
-    # 合并训练数据和额外数据
     return train_data, train_labels
 
 
@@ -671,9 +619,9 @@ class Cifar(Dataset):
                 T1.Resize((28, 28)),
                 T1.PadandRandomCrop(border=4, cropsize=(28, 28)),
                 T1.RandomAffine(
-                    degrees=15,  # +/- 5度的旋转
-                    translate=(0.1, 0.1),  # 最多10%的水平和垂直平移
-                    scale_range=(0.9, 1.1)  # 0.9到1.1倍的缩放
+                    degrees=15,
+                    translate=(0.1, 0.1),
+                    scale_range=(0.9, 1.1)
                 ),
                 T1.Normalize(mean, std),
                 transforms.ToTensor(),
@@ -682,9 +630,9 @@ class Cifar(Dataset):
                 T1.Resize((28, 28)),
                 T1.PadandRandomCrop(border=4, cropsize=(28, 28)),
                 T1.RandomAffine(
-                    degrees=15,  # +/- 5度的旋转
-                    translate=(0.1, 0.1),  # 最多10%的水平和垂直平移
-                    scale_range=(0.9, 1.1)  # 0.9到1.1倍的缩放
+                    degrees=15,
+                    translate=(0.1, 0.1),
+                    scale_range=(0.9, 1.1)
                 ),
                 RandomAugment1(2, 10),
                 T1.Normalize(mean, std),
@@ -694,9 +642,9 @@ class Cifar(Dataset):
                 transforms.ToPILImage(),
                 transforms.RandomResizedCrop(28, scale=(0.2, 1.)),
                 transforms.RandomAffine(
-                    degrees=15,  # +/- 5度的旋转
-                    translate=(0.1, 0.1),  # 最多10%的水平和垂直平移
-                    scale=(0.9, 1.1)  # 0.9到1.1倍的缩放
+                    degrees=15,
+                    translate=(0.1, 0.1),
+                    scale=(0.9, 1.1)
                 ),
                 transforms.RandomApply([
                     transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)
@@ -788,10 +736,8 @@ class Cifar(Dataset):
                 ])
 
     def __getitem__(self, idx):
-        # 获取一组图片和对应的标签
         ims, lb_prob,lb_idx,indices_u = self.data[idx], self.labels[idx],self.labels_idx[idx],self.indices_u[idx]
         labels = self.labels_real[idx]
-        # 对图片进行变换，这里假设使用了名为 self.trans 的图像变换函数
         if self.mode == 'train_u_co':
             x_weak = torch.stack([self.trans(im)[0] for im in ims])
             x_strong0 = torch.stack([self.trans(im)[1] for im in ims])
@@ -823,36 +769,32 @@ class SVHN(Dataset):
         mean, std = (0.4380, 0.4440, 0.4730), (0.1751, 0.1771, 0.1744)  # SVHN uses different mean and std
 
         trans_weak = T.Compose([
-            T.Resize((32, 32)),  # 调整图像大小为 32x32 像素
-            T.PadandRandomCrop(border=4, cropsize=(32, 32)),  # 添加填充并随机裁剪，用于数据增强
+            T.Resize((32, 32)),
+            T.PadandRandomCrop(border=4, cropsize=(32, 32)),
             T.RandomAffine(
-                degrees=15,  # +/- 5度的旋转
+                degrees=15,
                 translate=(0.125, 0.125)),
-            T.Normalize(mean, std),  # 标准化图像（mean和std是均值和标准差）
-            T.ToTensor(),  # 将图像转换为张量
+            T.Normalize(mean, std),
+            T.ToTensor(),
         ])
 
-        # 定义强数据增强方法（trans_strong0）
         trans_strong0 = T.Compose([
-            T.Resize((32, 32)),  # 调整图像大小为 32x32 像素
-            T.PadandRandomCrop(border=4, cropsize=(32, 32)),  # 添加填充并随机裁剪，用于数据增强
+            T.Resize((32, 32)),
+            T.PadandRandomCrop(border=4, cropsize=(32, 32)),
             RandomAugment(3, 5),
-            # 自定义数据增强方法（在代码中未提供具体实现）
-            T.Normalize(mean, std),  # 标准化图像（mean和std是均值和标准差）
-            T.ToTensor(),  # 将图像转换为张量
+            T.Normalize(mean, std),
+            T.ToTensor(),
         ])
 
-        # 定义更强的数据增强方法（trans_strong1）
         trans_strong1 = transforms.Compose([
-            transforms.ToPILImage(),  # 将张量转换为图像
-            transforms.RandomResizedCrop(32, scale=(0.2, 1.)),  # 随机裁剪和缩放，增强数据多样性
-            # 删除水平翻转操作
+            transforms.ToPILImage(),
+            transforms.RandomResizedCrop(32, scale=(0.2, 1.)),
             transforms.RandomApply([
-                transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)  # 随机颜色调整，增加数据多样性
-            ], p=0.8),  # 80%的概率应用颜色调整
-            transforms.RandomGrayscale(p=0.2),  # 20%的概率转换为灰度图像
-            transforms.ToTensor(),  # 将图像转换为张量
-            transforms.Normalize(mean, std),  # 标准化图像（mean和std是均值和标准差）
+                transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)
+            ], p=0.8),
+            transforms.RandomGrayscale(p=0.2),
+            transforms.ToTensor(),
+            transforms.Normalize(mean, std),
         ])
         if self.mode == 'train_x':
             self.trans = trans_weak
@@ -877,10 +819,8 @@ class SVHN(Dataset):
                 ])
 
     def __getitem__(self, idx):
-        # 获取一组图片和对应的标签
         ims, lb_prob, lb_idx, indices_u = self.data[idx], self.labels[idx], self.labels_idx[idx], self.indices_u[idx]
         labels = self.labels_real[idx]
-        # 对图片进行变换，这里假设使用了名为 self.trans 的图像变换函数
         if self.mode == 'train_u_co':
             x_weak = torch.stack([self.trans(im)[0] for im in ims])
             x_strong0 = torch.stack([self.trans(im)[1] for im in ims])
@@ -970,7 +910,6 @@ class SVHN2(Dataset):
         self.mode = mode
         assert len(self.data) == len(self.labels)
 
-        # 根据 SVHN 数据集的均值和标准差进行设置
         mean, std = (0.4380, 0.4440, 0.4730), (0.1751, 0.1771, 0.1744)
         trans_weak = T.Compose([
             T.Resize((32, 32)),
@@ -979,13 +918,12 @@ class SVHN2(Dataset):
             T.ToTensor(),
         ])
         trans_strong0 = T.Compose([
-            T.Resize((32, 32)),  # 调整图像大小为 32x32 像素
-            T.PadandRandomCrop(border=4, cropsize=(32, 32)),  # 添加填充并随机裁剪，用于数据增强
+            T.Resize((32, 32)),
+            T.PadandRandomCrop(border=4, cropsize=(32, 32)),
 
             RandomAugment(2, 10),
-            # 自定义数据增强方法（在代码中未提供具体实现）
-            T.Normalize(mean, std),  # 标准化图像（mean和std是均值和标准差）
-            T.ToTensor(),  # 将图像转换为张量
+            T.Normalize(mean, std),
+            T.ToTensor(),
         ])
         trans_strong1 = transforms.Compose([
             transforms.ToPILImage(),
@@ -1108,9 +1046,9 @@ class Cifar2(Dataset):
                 T1.Resize((28, 28)),
                 T1.PadandRandomCrop(border=4, cropsize=(28, 28)),
                 T1.RandomAffine(
-                    degrees=15,  # +/- 5度的旋转
-                    translate=(0.1, 0.1),  # 最多10%的水平和垂直平移
-                    scale_range=(0.9, 1.1)  # 0.9到1.1倍的缩放
+                    degrees=15,
+                    translate=(0.1, 0.1),
+                    scale_range=(0.9, 1.1)
                 ),
                 T1.Normalize(mean, std),
                 transforms.ToTensor(),
@@ -1119,9 +1057,9 @@ class Cifar2(Dataset):
                 T1.Resize((28, 28)),
                 T1.PadandRandomCrop(border=4, cropsize=(28, 28)),
                 T1.RandomAffine(
-                    degrees=15,  # +/- 5度的旋转
-                    translate=(0.1, 0.1),  # 最多10%的水平和垂直平移
-                    scale_range=(0.9, 1.1)  # 0.9到1.1倍的缩放
+                    degrees=15,
+                    translate=(0.1, 0.1),
+                    scale_range=(0.9, 1.1)
                 ),
                 RandomAugment1(2, 10),
                 T1.Normalize(mean, std),
@@ -1131,9 +1069,9 @@ class Cifar2(Dataset):
                 transforms.ToPILImage(),
                 transforms.RandomResizedCrop(28, scale=(0.2, 1.)),
                 transforms.RandomAffine(
-                    degrees=15,  # +/- 5度的旋转
-                    translate=(0.1, 0.1),  # 最多10%的水平和垂直平移
-                    scale=(0.9, 1.1)  # 0.9到1.1倍的缩放
+                    degrees=15,
+                    translate=(0.1, 0.1),
+                    scale=(0.9, 1.1)
                 ),
                 transforms.RandomApply([
                     transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)

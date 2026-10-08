@@ -134,6 +134,6 @@ class WarmupCosineLrScheduler(_LRScheduler):
         else:
             real_iter = self.last_epoch - self.warmup_iter
             real_max_iter = self.max_iter - self.warmup_iter
-            ratio = np.cos((np.pi * real_iter) / (4 * real_max_iter * 0.5))  # 修改了这一行
+            ratio = np.cos((np.pi * real_iter) / (4 * real_max_iter * 0.5))
 
         return ratio

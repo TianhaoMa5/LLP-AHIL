@@ -97,8 +97,8 @@ def thre_ema(thre, sum_values, ema):
 
 
 def weight_decay_with_mask(mask, initial_weight, max_mask_count):
-    mask_count = mask.sum().item()  # 计算当前 mask 中的元素数量
-    weight_decay = max(0, 1 - mask_count / max_mask_count)  # 线性衰减
+    mask_count = mask.sum().item()
+    weight_decay = max(0, 1 - mask_count / max_mask_count)
     return initial_weight * weight_decay
 
 def normal(h, h_tilde, beta):
@@ -112,7 +112,7 @@ def calc_bag_entropy(probs):
 def calc_instance_entropy(probs):
     return -torch.sum(probs * torch.log(probs + 1e-8), dim=1)
 
-def calc_opt_entropy(nn): # nn表示每个类的数量
+def calc_opt_entropy(nn):
     return torch.log(nn + 1e-8)
 
 
@@ -195,12 +195,9 @@ def train_one_epoch(epoch,
         # loss_x = criteria_x(logits_x, lbs_x)
         chunk_size = len(logits_u_w) // length
 
-        # 分成 length 节
         chunks = [logits_u_w[i * chunk_size:(i + 1) * chunk_size] for i in range(length)]
 
-        # 打印分成的各节数据
 
-        # 创建一个空的 PyTorch 向量用于保存 loss_p
         loss_prop = torch.Tensor([]).cuda()
         loss_prop = loss_prop.double()
         for i, chunk in enumerate(chunks):
@@ -209,10 +206,8 @@ def train_one_epoch(epoch,
             label_proportion = torch.tensor(label_proportions[i], dtype=torch.float64).cuda()
             loss_p = llp_loss(label_proportion, labels_p_mean)
 
-                # 将 loss_p 添加到 all_loss_p 中
             loss_prop = torch.cat((loss_prop, loss_p.view(1)))
 
-            # all_loss_p 包含了每个 loss_p
         log_base = torch.log2(torch.tensor(args.bagsize, dtype=torch.float64)).cuda()
 
         loss_prop = loss_prop.mean()
@@ -238,7 +233,7 @@ def train_one_epoch(epoch,
             # print(entropy_b.shape)
 
 
-            _, indices = torch.max(probs, dim=1)  # 获取概率最大值对应的索引
+            _, indices = torch.max(probs, dim=1)
             one_hot = torch.zeros_like(probs).scatter_(1, indices.unsqueeze(1), 1)
 
             chunks_prob = [probs[i * chunk_size:(i + 1) * chunk_size] for i in range(length)]
@@ -260,11 +255,9 @@ def train_one_epoch(epoch,
                 selected_entropy_b_normal = entropy_b_normal[0][indices]
                 # print(selected_entropy_b_normal.shape)
                 # print((selected_errors * selected_entropy_b_normal).shape)
-                lambda_b = lambda_b.double()  # 确保lambda_b是Float类型
-                # 确保selected_errors和selected_entropy_b_normal都是Float类型
+                lambda_b = lambda_b.double()
                 selected_errors = selected_errors.double()
                 selected_entropy_b_normal = selected_entropy_b_normal.double()
-                # 现在可以安全地进行torch.cat操作
                 lambda_b = torch.cat((lambda_b,  selected_entropy_b_normal))
 
             lambda_total = lambda_i * lambda_b
@@ -449,7 +442,7 @@ def main():
         tb_logger.log_value('Entropy', entropy_meter, epoch)
         """
         for i in range(0, args.bagsize):
-            tb_logger.log_value(f'samp_lb_meter_{i}', samp_lb[i].val, epoch)  # 使用适当的属性来获取值
+            tb_logger.log_value(f'samp_lb_meter_{i}', samp_lb[i].val, epoch)
             tb_logger.log_value(f'samp_p_meter_{i}', samp_p[i].val, epoch)
         """
         if best_acc < top1:

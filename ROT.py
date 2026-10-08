@@ -73,30 +73,25 @@ def llp_loss(labels_proportion, y):
 @torch.no_grad()
 def distributed_sinkhorn(out, args, proportion):
     Q = out
-    K = Q.shape[0]  # 获取原型数量，即 Q 的行数
-    B = Q.shape[1]  # 获取样本数量，即 Q 的列数
+    K = Q.shape[0]
+    B = Q.shape[1]
 
     for it in range(args.sinkhorn_iterations):
-        # 归一化每一行：每个原型的总权重必须为 1
         sum_of_rows = torch.sum(Q, dim=1, keepdim=True)
         sum_of_rows[sum_of_rows == 0] = 1
         Q /= sum_of_rows
 
-        # 归一化每一列：每个样本的总权重必须按 proportion[i] 分配
         sum_of_cols = torch.sum(Q, dim=0, keepdim=True)
-        # 避免除以零：将总和为零的列的总和替换为 1
         sum_of_cols[sum_of_cols == 0] = 1
         Q /= sum_of_cols
         Q *= proportion
 
-    # 为了保持比例不变，再次进行归一化
     sum_of_cols = torch.sum(Q, dim=0, keepdim=True)
-    # 同样的处理，避免除以零
     sum_of_cols[sum_of_cols == 0] = 1
     Q /= sum_of_cols
     Q *= proportion
 
-    return Q  # 返回转置后的 Q
+    return Q
 
 
 
@@ -124,8 +119,8 @@ def thre_ema(thre, sum_values, ema):
 
 
 def weight_decay_with_mask(mask, initial_weight, max_mask_count):
-    mask_count = mask.sum().item()  # 计算当前 mask 中的元素数量
-    weight_decay = max(0, 1 - mask_count / max_mask_count)  # 线性衰减
+    mask_count = mask.sum().item()
+    weight_decay = max(0, 1 - mask_count / max_mask_count)
     return initial_weight * weight_decay
 
 
@@ -225,12 +220,9 @@ def train_one_epoch(epoch,
         # loss_x = criteria_x(logits_x, lbs_x)
         chunk_size = len(logits_u_w) // length
 
-        # 分成 length 节
         chunks = [logits_u_w[i * chunk_size:(i + 1) * chunk_size] for i in range(length)]
 
-        # 打印分成的各节数据
 
-        # 创建一个空的 PyTorch 向量用于保存 loss_p
         loss_prop = torch.Tensor([]).cuda()
         loss_prop = loss_prop.double()
         for i, chunk in enumerate(chunks):
@@ -239,10 +231,8 @@ def train_one_epoch(epoch,
             label_proportion = torch.tensor(label_proportions[i], dtype=torch.float64).cuda()
             loss_p = llp_loss(label_proportion, labels_p_mean)
 
-                # 将 loss_p 添加到 all_loss_p 中
             loss_prop = torch.cat((loss_prop, loss_p.view(1)))
 
-            # all_loss_p 包含了每个 loss_p
 
         loss_prop = loss_prop.mean()
         with torch.no_grad():
@@ -253,34 +243,25 @@ def train_one_epoch(epoch,
 
             probs = torch.softmax(logits_u_w_1, dim=1)
             fl = 0
-            new_probs = []  # 存储修改后的 probs 块
+            new_probs = []
 
             for i in range(0, probs.size(0), args.bagsize):
-                # 获取当前块
                 prob_chunk = probs[i:i + args.bagsize]
 
-                # 获取当前块的列约束比例并调整
                 lap = torch.tensor(label_proportions[fl], dtype=torch.float64).cuda()
                 lap = lap * args.bagsize
 
-                # 使用 distributed_sinkhorn 函数处理每个块
                 adjusted_chunk = distributed_sinkhorn(prob_chunk, args, lap)
                 new_probs.append(adjusted_chunk)
 
                 fl += 1
 
-            # 将所有处理过的块重新组合成一个新的 probs 张量
             new_probs = torch.cat(new_probs, dim=0)
             scores, lbs_u_guess = torch.max(new_probs, dim=1)
             mask = scores.ge(args.thr).float()
 
-        """
-        伪标签提取更换为纯弱监督
-        """
         # pseudo-label graph with self-loop
 
-        # 假设probs是一个[N, 10]的矩阵
-        # 例如：probs = torch.rand(5, 10)
 
 
         # loss_Ein=custom_loss(probs)
@@ -488,7 +469,7 @@ def main():
         tb_logger.log_value('num_pos', num_pos, epoch)
         """
         for i in range(0, args.bagsize):
-            tb_logger.log_value(f'samp_lb_meter_{i}', samp_lb[i].val, epoch)  # 使用适当的属性来获取值
+            tb_logger.log_value(f'samp_lb_meter_{i}', samp_lb[i].val, epoch)
             tb_logger.log_value(f'samp_p_meter_{i}', samp_p[i].val, epoch)
         """
         if best_acc < top1:

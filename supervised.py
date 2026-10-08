@@ -27,10 +27,8 @@ def set_model(args):
         checkpoint = torch.load(args.checkpoint)
         model_weights = checkpoint['model'] if 'model' in checkpoint else checkpoint
 
-        # 使用strict=False来允许不完全匹配的权重加载
         msg = model.load_state_dict(model_weights, strict=True)
 
-        # 打印丢失和多余的键，而不是使用断言
         if msg.missing_keys:
             print("Missing keys:", msg.missing_keys)
         if msg.unexpected_keys:
@@ -74,8 +72,8 @@ def llp_loss(labels_proportion, y):
 
     return cross_entropy
 def weight_decay_with_mask(mask, initial_weight, max_mask_count):
-    mask_count = mask.sum().item()  # 计算当前 mask 中的元素数量
-    weight_decay = max(0, 1 - mask_count / max_mask_count)  # 线性衰减
+    mask_count = mask.sum().item()
+    weight_decay = max(0, 1 - mask_count / max_mask_count)
     return initial_weight * weight_decay
 
 def train_one_epoch(epoch,
@@ -146,7 +144,6 @@ def train_one_epoch(epoch,
         loss_u=criteria_x(logits, labels)
 
 
-        # 计算比例
 
 
         optim.zero_grad()

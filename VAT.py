@@ -83,7 +83,7 @@ class VATLoss(nn.Module):
                 d.requires_grad_()
                 pred_hat = model(x + self.xi * d)
                 output_tuple = model(x)
-                pred_hat = pred_hat[0]  # 选择模型输出的第一个元素
+                pred_hat = pred_hat[0]
                 logp_hat = F.log_softmax(pred_hat, dim=1)
                 adv_distance = F.kl_div(logp_hat, pred, reduction='batchmean')
                 adv_distance.backward()
@@ -173,8 +173,8 @@ def thre_ema(thre, sum_values, ema):
 
 
 def weight_decay_with_mask(mask, initial_weight, max_mask_count):
-    mask_count = mask.sum().item()  # 计算当前 mask 中的元素数量
-    weight_decay = max(0, 1 - mask_count / max_mask_count)  # 线性衰减
+    mask_count = mask.sum().item()
+    weight_decay = max(0, 1 - mask_count / max_mask_count)
     return initial_weight * weight_decay
 
 
@@ -282,20 +282,15 @@ def train_one_epoch(epoch,
 
         chunk_size = len(logits_u_w) // length
 
-        # 分成 length 节
         chunks = [logits_u_w[i * chunk_size:(i + 1) * chunk_size] for i in range(length)]
 
-        # 打印分成的各节数据
 
-        # 创建一个空的 PyTorch 向量用于保存 loss_p
         loss_prop = torch.Tensor([]).cuda()
         loss_prop = loss_prop.double()
         kl_divergence = torch.Tensor([]).cuda()
         kl_divergence = kl_divergence.double()
         kl_divergence_hard = torch.Tensor([]).cuda()
         kl_divergence_hard = kl_divergence_hard.double()
-        # 假设您有一个名为 chunks 的列表，其中包含多个 chunk
-        # 在循环中计算 loss_p 并添加到 all_loss_p 中
         for i, chunk in enumerate(chunks):
             labels_p = torch.softmax(chunk, dim=1)
             scores, lbs_u_guess = torch.max(labels_p, dim=1)
@@ -315,14 +310,11 @@ def train_one_epoch(epoch,
             one_hot_matrix += 1e-9
             log_one_hot_matrix = torch.log(one_hot_matrix)
 
-            # 计算软标签的KL散度
             kl_soft = F.kl_div(log_labels_p, label_prop, reduction='batchmean')
 
-            # 计算硬标签的KL散度
             kl_hard = F.kl_div(log_one_hot_matrix, label_prop, reduction='batchmean')
             kl_divergence = torch.cat((kl_divergence, kl_soft.view(1)))
             kl_divergence_hard = torch.cat((kl_divergence_hard, kl_hard.view(1)))
-            # all_loss_p 包含了每个 loss_p
         kl_divergence = kl_divergence.mean()
         kl_divergence_hard = kl_divergence_hard.mean()
         loss_prop = loss_prop.mean()
@@ -340,8 +332,8 @@ def train_one_epoch(epoch,
             mask = max_probs.ge(0.2+0.75 * (classwise_acc[max_idx] / (2. - classwise_acc[max_idx]))).float()  # convex
             thre=0.2+0.75 * (classwise_acc[max_idx] / (2. - classwise_acc[max_idx]))
 
-            thre_col = thre.view(-1, 1)  # 将 thre 变为列向量
-            thre_row = thre.view(1, -1)  # 将 thre 变为行向量
+            thre_col = thre.view(-1, 1)
+            thre_row = thre.view(1, -1)
 
             thre = torch.mm(thre_col, thre_row)
             delta = thre + (1 - thre) / (n_classes-1) * (1 - thre)
@@ -366,9 +358,6 @@ def train_one_epoch(epoch,
             probs = probs / probs.sum(dim=1, keepdim=True)
             """
 
-            """
-            probs是分类器对弱增强输出对 softmax结果
-            """
 
             """
             probs_orig = probs.clone()

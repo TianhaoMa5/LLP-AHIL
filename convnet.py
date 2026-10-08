@@ -8,8 +8,7 @@ class CIFAR10Model(nn.Module):
     def __init__(self):
         super(CIFAR10Model, self).__init__()
         self.features = nn.Sequential(
-            # 第一部分: 3x3卷积 + BN + LeakyReLU (96通道)
-            nn.Conv2d(3, 96, kernel_size=3, stride=1, padding=1),  # 输入通道:3(RGB图像)
+            nn.Conv2d(3, 96, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(96),
             nn.LeakyReLU(),
 
@@ -21,11 +20,9 @@ class CIFAR10Model(nn.Module):
             nn.BatchNorm2d(96),
             nn.LeakyReLU(),
 
-            # 最大池化 + BN
             nn.MaxPool2d(kernel_size=2, stride=2),
             nn.BatchNorm2d(96),
 
-            # 第二部分: 3x3卷积 + BN + LeakyReLU (192通道)
             nn.Conv2d(96, 192, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(192),
             nn.LeakyReLU(),
@@ -38,32 +35,27 @@ class CIFAR10Model(nn.Module):
             nn.BatchNorm2d(192),
             nn.LeakyReLU(),
 
-            # 最大池化 + BN
             nn.MaxPool2d(kernel_size=2, stride=2),
             nn.BatchNorm2d(192),
 
-            # 第三部分: 3x3卷积 + BN + LeakyReLU (192通道)
             nn.Conv2d(192, 192, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(192),
             nn.LeakyReLU(),
 
-            # 1x1卷积 + BN + LeakyReLU
             nn.Conv2d(192, 192, kernel_size=1, stride=1, padding=0),
             nn.BatchNorm2d(192),
             nn.LeakyReLU(),
 
-            # 1x1卷积 + BN + LeakyReLU (10通道)
             nn.Conv2d(192, 10, kernel_size=1, stride=1, padding=0),
             nn.BatchNorm2d(10),
             nn.LeakyReLU()
         )
-        # 全局平均池化
-        self.global_pool = nn.AdaptiveAvgPool2d((1, 1))  # 输出尺寸为1x1
+        self.global_pool = nn.AdaptiveAvgPool2d((1, 1))
 
     def forward(self, x):
         x = self.features(x)
         x = self.global_pool(x)
-        x = torch.flatten(x, 1)  # 展平
+        x = torch.flatten(x, 1)
         return x
 
 
